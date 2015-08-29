@@ -7,8 +7,7 @@ setup(
     install_requires=[
         "requests",
         "ConfigMaster>=2.3.5",
-        "pgpy",
-        "pgpdump3"
+        "git+https://github.com/mitchellrj/python-pgp.git",
     ],
     url='https://github.com/SkierPGP/keybase-python3',
     license='GPLv3',

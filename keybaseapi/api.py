@@ -5,17 +5,16 @@ What this does:
 
 """
 from warnings import warn
-
-
+import pgp
+import pgp.message
 
 import requests
 from configmaster.ConfigKey import ConfigKey
 
-from pgpy import PGPKey, PGPSignature, PGPMessage
-from pgpy.errors import PGPError
 
-import pgpdump
-import pgpdump.packet
+headers = {
+    "User-Agent": "keybase-python3 API interfacer (by https://keybase.io/eyes)"
+}
 
 
 class _Keybase(object):
@@ -31,10 +30,10 @@ class _Keybase(object):
         """
         if method == "GET":
             return requests.get("https://keybase.io/_/api/{}/{}".format(self.API_VERSION, url),
-                         params=params)
+                         params=params, headers=headers)
         elif method == "POST":
             return requests.get("https://keybase.io/_/api/{}/{}".format(self.API_VERSION, url),
-                         data=params)
+                         data=params, headers=headers)
         else:
             return None
 
@@ -58,6 +57,10 @@ class _Keybase(object):
         Makes a POST request.
         """
         return self._translate_into_configkey(self._make_request(url, params, "POST"))
+
+
+class VerificationError(Exception):
+    pass
 
 
 class User(_Keybase):
@@ -128,13 +131,11 @@ class User(_Keybase):
 
         # Map public key
         self.raw_public_key = person.public_keys.primary.bundle
-        self.public_key = PGPKey()
-        # Workaround for a bug.
-        try:
-            self.public_key.parse(self.raw_public_key)
-        except AttributeError:
-            # Fuck it!
-            pass
+        self.public_key = pgp.read_key(self.raw_public_key)
+
+        self.fingerprint = person.public_keys.primary.key_fingerprint.upper()
+        self.keyalgo = person.public_keys.primary.key_algo
+        self.keybits = person.public_keys.primary.key_bits
 
         # Loop over our proofs.
         for proof in person.proofs_summary.all:
@@ -144,17 +145,20 @@ class User(_Keybase):
         self.valid = True
 
     def _verify_msg(self, msg: str) -> bool:
-        # First, begin by dumping the compressed data.
-        data = pgpdump.AsciiData(msg)
-        packets = list(data.packets())
-        if len(packets) == 1:
-            # Decompress the data.
-            new_packets = list(pgpdump.BinaryData(packets[0].decompressed_data).packets())
-            return self._verify_packets(new_packets)
+        # Load in the message.
+        loaded_msg = pgp.read_message(msg, armored=True)
+        # Verify the key.
+        # First, find a signature that matches the Key ID.
+        signature = None
+        for sig in loaded_msg.get_message().signatures:
+            if self.fingerprint[-16:] in sig.issuer_key_ids:
+                # Verified!
+                signature = sig
+                break
         else:
-            # Just verify the signatures.
-            return self._verify_packets(packets)
-
+            raise VerificationError("Could not find a valid self signature in proof")
+        # Then, verify using the public key on store.
+        return self.public_key.verify(signature, loaded_msg.get_message().message)
 
     def verify_proofs(self) -> bool:
         if self.trust:
@@ -164,8 +168,16 @@ class User(_Keybase):
         for proof in self.proofs.values():
             # Get our URL.
             if proof.proof_type == "github":
-                pass
-
-
-    def _verify_packets(self, new_packets: list) -> bool:
-        raise NotImplementedError
+                # Decode link.
+                gist_id = proof.proof_url.split("/")[-1]
+                request_url = "https://gist.githubusercontent.com/{}/{}/raw".format(proof.nametag, gist_id)
+                r = requests.get(request_url, headers=headers)
+                if r.status_code != 200:
+                    raise VerificationError("Proof URL could not be validated")
+                else:
+                    # Search for the PGP key header...
+                    data = r.text
+                    key = data[data.find("-----BEGIN PGP MESSAGE-----"):data.find("-----END PGP MESSAGE-----")] + "-----END PGP MESSAGE-----"
+                    if not self._verify_msg(key):
+                        raise VerificationError("Proof {} could not be verified!".format(proof.proof_id))
+        return True
