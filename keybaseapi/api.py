@@ -4,6 +4,7 @@ What this does:
     - Turns the data into actual readable data, not weird mangled JSON.
 
 """
+import re
 from warnings import warn
 
 import pgp
@@ -180,6 +181,7 @@ class User(_Keybase):
 
         self.valid = True
 
+
     def _verify_msg(self, msg: str) -> bool:
         # Load in the message.
         try:
@@ -213,7 +215,14 @@ class User(_Keybase):
         return key_to_use.verify(signature, loaded_msg.get_message().message)
 
     def _find_pgp_data(self, data: str) -> str:
-        return data[data.find("-----BEGIN PGP MESSAGE-----"):data.find("-----END PGP MESSAGE-----")+26]
+        d = data[data.find("-----BEGIN PGP MESSAGE-----"):data.find("-----END PGP MESSAGE-----")+26]
+        # Strip HTML tags for dns sigs and the like.
+        d = d.replace("<span class=\"hljs-horizontal_rule\">", "")
+        d = d.replace("<span>", "")
+        d = d.replace("</span>", "")
+        d = d.replace("\"", "")
+        return d
+
 
     def verify_proofs(self) -> bool:
         """
@@ -272,9 +281,9 @@ class User(_Keybase):
                 ndata = '\n'.join(ndata)
                 if not self._verify_msg(ndata):
                     raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))
-            elif proof.proof_type == "generic_web_site":
+            elif proof.proof_type in ["generic_web_site", "dns", "coinbase"]:
                 # Nothing special here, just find the data in the URL, and verify it.
-                data = requests.get(proof.proof_url)
+                data = requests.get(proof.proof_url, headers=headers)
                 data = self._find_pgp_data(data.text)
                 if not self._verify_msg(data):
                     raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))

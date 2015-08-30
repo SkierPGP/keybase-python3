@@ -77,6 +77,11 @@ def test_verification_of_non_username():
     assert user_r.verify_proofs()
     assert user_k.verify_proofs()
 
+def test_verification_of_html_scraped_proof():
+    """Test verification of proofs that have been scraped out of the data."""
+    user_c = keybaseapi.User("coinbase://maxtaco")
+    assert user_c.verify_proofs()
+
 @pytest.mark.xfail(raises=keybaseapi.UserNotFoundError)
 def test_verification_of_invalid_external_user():
     """Test verification of a user that doesn't exist via github:// or reddit://"""
