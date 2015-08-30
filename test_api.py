@@ -60,6 +60,30 @@ def test_verification_detached():
     user = keybaseapi.User("eyes")
     assert user.verify_data(signed_data)
 
+def test_verification_of_invalid_user():
+    user = keybaseapi.User("mdshbduhysabdwyfvbw38yfgbwe7fbwy8fbw8f7bwe79fb3")
+    assert not user.verify_proofs()
+
+def test_verification_of_non_username():
+    """Test verification of a user discovered via github:// or reddit://"""
+    user_g = keybaseapi.User("github://maxtaco")
+    user_r = keybaseapi.User("reddit://maxtaco")
+    user_k = keybaseapi.User("max")
+    assert user_g.public_key.fingerprint == user_r.public_key.fingerprint
+    assert user_r.public_key.fingerprint == user_k.public_key.fingerprint
+    assert user_g.raw_public_key == user_k.raw_public_key
+    assert user_r.raw_public_key == user_k.raw_public_key
+    assert user_g.verify_proofs()
+    assert user_r.verify_proofs()
+    assert user_k.verify_proofs()
+
+@pytest.mark.xfail(raises=keybaseapi.UserNotFoundError)
+def test_verification_of_invalid_external_user():
+    """Test verification of a user that doesn't exist via github:// or reddit://"""
+    user_r = keybaseapi.User("reddit://sidlib7")
+    user_g = keybaseapi.User("github://dejwsdhh")
+
+
 @pytest.mark.xfail
 def test_verification_broken():
     """Test a broken signature."""

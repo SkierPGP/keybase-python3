@@ -37,7 +37,7 @@ setup(
     tests_require=[
         'pytest',
         'pytest-cov',
-        'coverage',
+        'coverage>=4.0b2',
         'coveralls'
     ],
     dependency_links=[

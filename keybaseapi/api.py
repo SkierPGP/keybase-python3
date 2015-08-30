@@ -5,12 +5,13 @@ What this does:
 
 """
 from warnings import warn
+
 import pgp
 import pgp.message
-
 import requests
 from configmaster.ConfigKey import ConfigKey
 
+from .exc import VerificationError, UserNotFoundError
 
 headers = {
     "User-Agent": "keybase-python3 API interfacer (by https://keybase.io/eyes)"
@@ -86,9 +87,6 @@ class _Keybase(object):
         """
         raise NotImplementedError
 
-class VerificationError(Exception):
-    pass
-
 
 class User(_Keybase):
     """
@@ -154,6 +152,8 @@ class User(_Keybase):
         else:
             self.fetched = True
         # Load first person's profile data.
+        if len(self.raw_keybase_data.them) <= 0:
+            raise UserNotFoundError(self.method + "://" + self.username)
         person = self.raw_keybase_data.them[0]
         # Load basic data.
         if not person:
@@ -217,6 +217,20 @@ class User(_Keybase):
         return data[data.find("-----BEGIN PGP MESSAGE-----"):data.find("-----END PGP MESSAGE-----")+26]
 
     def verify_proofs(self) -> bool:
+        """
+        Verify the proofs of this user.
+
+        This scans the available proof locations to find the PGP messages stored within, then verifies the signatures.
+
+        Returns:
+            True if verification succeeded.
+            False if there was no proofs to verify.
+
+        Raises:
+            VerificationError if the proofs failed to verify/validate.
+        """
+        if len(self.proofs.items()) == 0:
+            return False
         if self.trust:
             warn("Blindly trusting Keybase servers that the proofs are valid...")
             for proof in self.proofs.values():
