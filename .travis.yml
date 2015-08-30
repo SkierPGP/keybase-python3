@@ -3,7 +3,6 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
-  - "nightly"
 # command to install dependencies
 install: "pip install -q -U requests ConfigMaster git+https://github.com/mitchellrj/python-pgp pytest pytest-cov coveralls coverage"
 # command to run tests
