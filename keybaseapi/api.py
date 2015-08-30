@@ -155,9 +155,8 @@ class User(_Keybase):
         if len(self.raw_keybase_data.them) <= 0:
             raise UserNotFoundError(self.method + "://" + self.username)
         person = self.raw_keybase_data.them[0]
+
         # Load basic data.
-        if not person:
-            return
 
         self.real_name = person.profile.full_name
         self.location = person.profile.location
@@ -273,6 +272,12 @@ class User(_Keybase):
                 ndata = '\n'.join(ndata)
                 if not self._verify_msg(ndata):
                     raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))
-            elif proof.proof_type == "dns":
+            elif proof.proof_type == "generic_web_site":
+                # Nothing special here, just find the data in the URL, and verify it.
+                data = requests.get(proof.proof_url)
+                data = self._find_pgp_data(data.text)
+                if not self._verify_msg(data):
+                    raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))
+            else:
                 warn("Cannot verify proofs of type {} current due to lack of keybase API support, without HTML scraping.".format(proof.proof_type))
         return True
