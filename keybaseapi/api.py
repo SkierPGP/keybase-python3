@@ -58,6 +58,33 @@ class _Keybase(object):
         """
         return self._translate_into_configkey(self._make_request(url, params, "POST"))
 
+    def verify_data(self, pgp_message: str) -> bool:
+        """
+        Verifies a PGP message against the public key on file.
+
+        Params:
+            - pgp_message: The message to verify. This should be a fully contained message, either compressed or uncompressed, including the data to use and the signature.
+
+        Returns:
+            - A boolean, stating if the message was verified or not.
+
+        """
+        raise NotImplementedError
+
+    def encrypt_data(self, message: str) -> pgp.message.EncryptedMessageWrapper:
+        """"
+        Encrypt data for the public key on file.
+
+        Params:
+            - message: The message to encrypt. This can be anything, but ideally it is string data.
+            For security purposes, this parameter will attempt to be deleted after usage.
+            THIS DATA MAY RETAIN IN MEMORY AFTER RETURNING FROM THE FUNCTION. DO NOT USE THIS TO HANDLE SENSITIVE DATA WITHOUT THE APPROPRIATE PRECAUTIONS.
+
+        Returns:
+            - a pgp.message.EncryptedMessageWrapper object.
+
+        """
+        raise NotImplementedError
 
 class VerificationError(Exception):
     pass
@@ -137,6 +164,8 @@ class User(_Keybase):
         self.keyalgo = person.public_keys.primary.key_algo
         self.keybits = person.public_keys.primary.key_bits
 
+        self.subkeys = set(key[-16:] for key in person.public_keys.sibkeys)
+
         # Loop over our proofs.
         for proof in person.proofs_summary.all:
             self.proofs[proof.proof_id] = ConfigKey()
@@ -149,16 +178,31 @@ class User(_Keybase):
         loaded_msg = pgp.read_message(msg, armored=True)
         # Verify the key.
         # First, find a signature that matches the Key ID.
-        signature = None
         for sig in loaded_msg.get_message().signatures:
             if self.fingerprint[-16:] in sig.issuer_key_ids:
                 # Verified!
                 signature = sig
+                key_to_use = self.public_key
+                break
+            else:
+                # Check for subkeys.
+                for subkey in self.public_key.subkeys:
+                    if subkey.fingerprint[-16:] in sig.issuer_key_ids:
+                        # Verified as well.
+                        key_to_use = subkey
+                        signature = sig
+                        break
+                # This is a quick hack, to break out of both loops.
+                else:
+                    continue
                 break
         else:
             raise VerificationError("Could not find a valid self signature in proof")
         # Then, verify using the public key on store.
-        return self.public_key.verify(signature, loaded_msg.get_message().message)
+        return key_to_use.verify(signature, loaded_msg.get_message().message)
+
+    def _find_pgp_data(self, data: str) -> str:
+        return data[data.find("-----BEGIN PGP MESSAGE-----"):data.find("-----END PGP MESSAGE-----")+26]
 
     def verify_proofs(self) -> bool:
         if self.trust:
@@ -177,7 +221,27 @@ class User(_Keybase):
                 else:
                     # Search for the PGP key header...
                     data = r.text
-                    key = data[data.find("-----BEGIN PGP MESSAGE-----"):data.find("-----END PGP MESSAGE-----")] + "-----END PGP MESSAGE-----"
+                    key = self._find_pgp_data(data)
                     if not self._verify_msg(key):
                         raise VerificationError("Proof {} could not be verified!".format(proof.proof_id))
+            elif proof.proof_type == "reddit":
+                # Sigh.
+                # Reddit's API is shittastic, and I don't have enough justification to use praw for just fetching these.
+                r = requests.get(proof.proof_url + "/.json", headers=headers)
+                js = r.json()
+                # Get the parent user's data.
+                to_search_mtree = js[0]["data"]["children"][0]["data"]
+                # Verify the username.
+                if to_search_mtree["author"].lower() != proof.nametag.lower():
+                    raise VerificationError("Proof {} username does not match")
+                data = self._find_pgp_data(to_search_mtree["selftext"])
+                # Next, strip the spaces from the left.
+                ndata = []
+                for line in data.split('\n'):
+                    ndata.append(line.lstrip(' '))
+                ndata = '\n'.join(ndata)
+                if not self._verify_msg(ndata):
+                    raise VerificationError("Proof {} could not be verified!".format(proof.proof_id))
+            elif proof.proof_type == "dns":
+                warn("Cannot verify proofs of type {} current due to lack of keybase API support, without HTML scraping.".format(proof.proof_type))
         return True

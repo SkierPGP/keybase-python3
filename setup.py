@@ -1,8 +1,10 @@
 from setuptools import setup
 
+import keybaseapi
+
 setup(
     name='keybaseio-api',
-    version='0.0.1',
+    version=keybaseapi.__version__,
     packages=['keybaseapi'],
     install_requires=[
         "requests",
