@@ -221,6 +221,7 @@ class User(_Keybase):
         d = d.replace("<span>", "")
         d = d.replace("</span>", "")
         d = d.replace("\"", "")
+        d = d.replace("<", "").replace(">", "")
         return d
 
 

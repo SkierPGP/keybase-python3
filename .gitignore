@@ -53,5 +53,14 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+.idea/
+
 # PyBuilder
 target/
+
+upload.sh
+aaaa.py
+
+# todo remove
+docs/
+mkdocs.yml
