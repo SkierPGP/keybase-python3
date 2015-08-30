@@ -3,19 +3,19 @@
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJV4t69AAoJELM7eGjErpPKqlkP/0RYt35w+rkfPb4voYXceP09
-H55zfKTpioxqF73Iij2lE9/SNiUpBfQ3hTnfGIbelg6E/+8QxylxEtJPkkF/RPEx
-Fw7seRFg6BVi8AzlkCjG5m0cSHix3Dy3o8KES6SBfLFTNoHfs/7hJch7bmm8qQar
-cD0ijcgIIlWjX4DGCcoj/r/r88a5LdNkkHMRND0rLgKoGHXGRKcyL/Ukk8iDOUzl
-nuYVokQ5kbvoXCZ87xtu5Q8WeQdj3qpQpoHVuTa/dN2h7bXe4LVcHBtCsLRB9rtW
-nE3pTGL74j6ARDaLiWTV5rU0J4EzdExwQM4OsjfrjIiGINKVq721MT9PgsY61pox
-eVtMbMgKoFqiRTerHTrZhQWiOwvnR40f5T+JwX6ubxPmKOE1IKRsa7hTjaA733bH
-nXduXlWgAV4svp7XqC/m79kl0KuOr0enW+/cRrfvvDsl4GsWumkznYSpeATZ166x
-9bmfMj/g46fap18pB0K54ckavU/OAKjR2QOXRQ6S0KxOtRjJUTFPRJJbPB6USnYz
-Oz4J9SHegJl7nvz00CzYB+JWWIXwzOSsuxZIgTDUFgatwD0svsYSCkw7+1zEFpNX
-3ey51jYDB7MH/HuL2r1FuGsyxiToL2516fdPBgxCTncLMh0aOnEWzcZQVBSBg/7e
-vNHX70AO59estfBnYvvr
-=5yKe
+iQIcBAABCAAGBQJV4uivAAoJELM7eGjErpPKzbUQALJBE8wC4goUpD4ziR52WeT7
+3y/Via80011jbKMSgaTut216MzN1yTSrpjgvuvnI+m12rxRvFAb5V4Yrx68oGUxv
+uObl9ztro5sndSLd0h90JfxIeR38elkXBStxEasN3LeFPjdY/HkptYXddMkcoUsb
+ccqn0JuAkCTraFjnsJGmammTUtEsVWV21bVxi11RdWInuLpbLk0ogjv87RO9J9wf
+bLgXRBoc77TzV3lLp3Guas0BAnpuc/CwadCo+cjw+YH36pvhZjkJj2g8bTbIF0c/
+BiWJv3sMXp1OTRuX2XtA4zfreXXV7BvjbFS1e3jR/A/vFH5Nkb9eQYmircUEc+AX
+lOuKb+j92uoUC0MlF6ahB8ONlop91c86Xe435B3ya8pPxWUvXkQjSD5UhDL/QrAp
+dCwrBiRW2w4Thx9B0dxsmarU3uzMX3L3xF/0RkipB4nosNL3mIkBQSluupyp9IJh
+QJwpGb5yYVMsCmB2qVIYOILPldnixdsHSyyFtk9QK/zamR6FhdvI9z6fXqWEfRJk
+Z+LVjiFrSwxt9a0wt+fB3dhC5JWbnK1cvtwEx9j4sFok/sRercvMNIcFzrXzxDp8
+vGT8cRW1O/V+wOM+7WCaF6rwzS3xZBaYW33eSHSgomdMvt3M5863hj/FnRGuLWTK
+IV9MrAih7GZtF7yLSegw
+=e026
 -----END PGP SIGNATURE-----
 
 ```
@@ -39,16 +39,19 @@ size   exec  file                         contents
 849              misc.xml                 8c7653cff72a33d9ac87104bf8aabc3ed38796fbbc6eac8763b2ad351d76a5e1
 282              modules.xml              a989621ada0210cf1980a4789b628fe1d55b72ee551d8dc9d0f059c47e492f9f
 180              vcs.xml                  55768f1f84fb117f1d0fc383e180b5d0aa5e5e6584c8c4a2995c15b4237f0972
-51879            workspace.xml            a5e81b5bb64073c029305c6ef69d01193982fa7609a722273ce6a9432f9bbfbc
-364            .travis.yml                0401fe294fca789b419db86e298050e4e8acc3a64dd2e6d073db214b5de8110b
+55283            workspace.xml            cba3c20384550b9f3439c4335b91b34fbc42d29c51cfa7e41ab6ee9f9fe4cbfe
+318            .travis.yml                eb6938374979d9a54df556085315e46dc933198337ea0ef6b0966953c2e3b90e
 93             aaaa.py                    59cb75051a733c777388ec07688be432bcb5e4ed7eeeddbcff435dd41ee7b6d2
                keybaseapi/                                                                                
-44               __init__.py              c0684328b180b91621548b3ae1868c5eabd1171dceccb748fbcf1797300ac66c
-9788             api.py                   9d4bf5dbc4e1165e7ac2ec06796873a34c9ccb7c2a1e123580232e16f8fc3b9d
+84               __init__.py              80944845687ca1890d2bf9372668cf4e83c29697b72586ca25d8b5efc91a3642
+10727            api.py                   074996b4722168bc2482d41770f164ccc11e85c82bf72648a3aafdb2ddf399fa
+90               exc.py                   af926a9301063f8ea22a54b01a0058decd99bccb5838be0c6a89abc867433840
 35142          LICENSE                    d62f065830aa3739cc031156b9690805c7b2e811b4a178c8b4acd8725d561c94
-45             README.md                  792f82e1dbb3191f6641fffb5cfb66485bb029927227f587afaace966943b2db
+822            README.md                  82ed1965a9e9859f0e73453095996c6a8d809cd4deee5a1b933c888adaf5ecb0
+948            README.rst                 9362adbc9140e4e2ca3796bca60b5d372058d16601e7a9f1656d080669b7c58a
 1603           setup.py                   7101cc89c8faaf8886672d92acdf76efdc6f4c148471cf234cab686e073e796c
-2903           test_api.py                ee16161626df7b069056a5ebf7a3b0e2db57056c3ae8db7c0f8b7d3c31f1760f
+3968           test_api.py                b1e33483c33dd3e1bc517c4532374e76142a190f01391343557b5a09c1ecff12
+237    x       upload.sh                  567ef622ebf42278dbc2466290c030bd779f29f6c45874a98629225f0fb5e5ab
 ```
 
 #### Ignore
