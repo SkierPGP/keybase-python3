@@ -98,6 +98,14 @@ class User(_Keybase):
 
     Note that if the search returns multiple results, the first one will be picked.
     """
+
+    def encrypt_data(self, message: str) -> pgp.message.EncryptedMessageWrapper:
+        raise NotImplementedError("python-pgp does not currently support encrypting.")
+
+    def verify_data(self, pgp_message: str) -> bool:
+        # Just pass a call to _verify_msg
+        return self._verify_msg(pgp_message)
+
     def __init__(self, username: str, trust_keybase: bool=False) -> None:
         self.username = username
         if "://" in username:
@@ -175,7 +183,11 @@ class User(_Keybase):
 
     def _verify_msg(self, msg: str) -> bool:
         # Load in the message.
-        loaded_msg = pgp.read_message(msg, armored=True)
+        try:
+            loaded_msg = pgp.read_message(msg, armored=True)
+        except ValueError as e:
+            raise VerificationError("Message was invalid") from e
+
         # Verify the key.
         # First, find a signature that matches the Key ID.
         for sig in loaded_msg.get_message().signatures:
@@ -207,6 +219,11 @@ class User(_Keybase):
     def verify_proofs(self) -> bool:
         if self.trust:
             warn("Blindly trusting Keybase servers that the proofs are valid...")
+            for proof in self.proofs.values():
+                if proof.state == 1:
+                    continue
+                else:
+                    raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))
             return True
         # Otherwise...
         for proof in self.proofs.values():
@@ -223,7 +240,7 @@ class User(_Keybase):
                     data = r.text
                     key = self._find_pgp_data(data)
                     if not self._verify_msg(key):
-                        raise VerificationError("Proof {} could not be verified!".format(proof.proof_id))
+                        raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))
             elif proof.proof_type == "reddit":
                 # Sigh.
                 # Reddit's API is shittastic, and I don't have enough justification to use praw for just fetching these.
@@ -241,7 +258,7 @@ class User(_Keybase):
                     ndata.append(line.lstrip(' '))
                 ndata = '\n'.join(ndata)
                 if not self._verify_msg(ndata):
-                    raise VerificationError("Proof {} could not be verified!".format(proof.proof_id))
+                    raise VerificationError("Proof {} could not be verified!".format(proof.proof_type + "/" + proof.nametag))
             elif proof.proof_type == "dns":
                 warn("Cannot verify proofs of type {} current due to lack of keybase API support, without HTML scraping.".format(proof.proof_type))
         return True

@@ -1,0 +1,13 @@
+language: python
+python:
+  - "3.2"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "nightly"
+  - "pypy3"
+# command to install dependencies
+install: "pip install -q -U requests ConfigMaster git+https://github.com/mitchellrj/python-pgp pytest pytest-cov coveralls coverage"
+# command to run tests
+script: "coverage run --source=keybaseapi setup.py test"
+after_success: "coveralls"
