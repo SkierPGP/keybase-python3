@@ -32,16 +32,13 @@ setup(
     install_requires=[
         "requests",
         "ConfigMaster>=2.3.5",
-        "pgp>=0.0.1",
+        "py-pgp>=0.0.1",
     ],
     tests_require=[
         'pytest',
         'pytest-cov',
         'coverage',
         'coveralls'
-    ],
-    dependency_links=[
-      'https://github.com/mitchellrj/python-pgp/archive/master.zip#egg=pgp-0.0.1'
     ],
     cmdclass = {'test': PyTest},
     url='https://github.com/SkierPGP/keybase-python3',
