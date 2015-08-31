@@ -82,6 +82,14 @@ def test_verification_of_html_scraped_proof():
     user_c = keybaseapi.User("coinbase://maxtaco")
     assert user_c.verify_proofs()
 
+def test_no_autofetch():
+    """Test manually adding the keybase data when it's not autofetched."""
+    u1 = keybaseapi.User("max")
+    u2 = keybaseapi.User("max", autofetch=False)
+    u2.raw_keybase_data = u1.raw_keybase_data
+    u2._map_data()
+    assert u1.raw_public_key == u2.raw_public_key
+
 @pytest.mark.xfail(raises=keybaseapi.UserNotFoundError)
 def test_verification_of_invalid_external_user():
     """Test verification of a user that doesn't exist via github:// or reddit://"""

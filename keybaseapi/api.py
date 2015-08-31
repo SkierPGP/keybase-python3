@@ -43,8 +43,13 @@ class _Keybase(object):
         """
         Transforms data into a ConfigKey object.
         """
-        if "application/json" in data.headers['Content-Type']:
-            c = ConfigKey(); c.load_from_dict(data.json()); return c
+        if isinstance(data, requests.Response):
+            if "application/json" in data.headers['Content-Type']:
+                c = ConfigKey(); c.load_from_dict(data.json()); return c
+            else:
+                return None
+        elif isinstance(data, dict):
+            c = ConfigKey(); c.load_from_dict(data); return c
         else:
             return None
 
@@ -105,7 +110,20 @@ class User(_Keybase):
         # Just pass a call to _verify_msg
         return self._verify_msg(pgp_message)
 
-    def __init__(self, username: str, trust_keybase: bool=False) -> None:
+    def __init__(self, username: str, trust_keybase: bool=False, autofetch: bool=True) -> None:
+        """
+        Create a new instance of a Keybase user.
+
+        Params:
+            - Username: The username to look up.
+                This can be either a normal string username (`max`), or a username with a method (`github://maxtaco`).
+
+            - trust_keybase: Should we pretend that keybase is correct, or do we locally verify the signatures?
+                By default, we locally verify the signatures.
+
+            - autofetch: Should we download the keybase data automagically, or should we not and just let the user replace the data?
+                By default, the data is automatically fetched.
+        """
         self.username = username
         if "://" in username:
             self.method = username.split("://")[0]
@@ -114,6 +132,8 @@ class User(_Keybase):
             self.method = "usernames"
 
         self.fetched = False
+
+        self.raw_keybase_data = None
 
         self.trust = trust_keybase
         if trust_keybase:
@@ -135,9 +155,9 @@ class User(_Keybase):
         self.location = ""
         self.bio = ""
 
-
         # Fetch the data.
-        self._get_info()
+        if autofetch:
+            self._get_info()
 
     def _get_info(self):
         # Fetch the information from keybase.
